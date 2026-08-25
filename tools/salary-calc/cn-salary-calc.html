@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>工资优化计算器</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,"Microsoft YaHei","PingFang SC",sans-serif;background:#f0f2f5;color:#333;line-height:1.6;padding:12px}
+.container{max-width:960px;margin:0 auto}
+h1{text-align:center;color:#1a1a2e;font-size:20px;margin-bottom:14px;letter-spacing:1px}
+.card{background:#fff;border-radius:8px;padding:14px 18px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.card h2{font-size:14px;color:#1a1a2e;margin-bottom:8px;padding-bottom:5px;border-bottom:2px solid #4361ee}
+.card h3{font-size:12.5px;color:#555;margin:8px 0 5px}
+.pr{display:flex;align-items:center;margin-bottom:5px;flex-wrap:wrap}
+.pr label{width:190px;font-size:12.5px;flex-shrink:0}
+.pr input[type=number]{width:110px;padding:3px 6px;border:1px solid #ddd;border-radius:4px;font-size:12.5px;text-align:right}
+.pr .u{font-size:10.5px;color:#888;margin-left:4px}
+.rg{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+table{width:100%;border-collapse:collapse;font-size:11.5px;margin-top:5px}
+th,td{padding:4px 5px;text-align:right;border:1px solid #e8e8e8}
+th{background:#f8f9fa;font-weight:600;color:#555}
+td:first-child{text-align:left;font-weight:500}
+tr:nth-child(even){background:#fafbfc}
+tr.hl{background:#fff8e1;font-weight:600}
+tr.gr{background:#e8f5e9;font-weight:700}
+tr.bl{background:#e3f2fd;font-weight:600}
+.u8{font-size:9.5px;color:#999;font-weight:normal}
+.tc{text-align:center!important}
+.sb{background:#f8f9fa;border-radius:6px;padding:8px 12px;margin-top:6px}
+.sr{display:flex;justify-content:space-between;padding:2px 0;font-size:12px}
+.sr.tot{font-weight:700;font-size:14px;border-top:2px solid #4361ee;padding-top:5px;margin-top:3px}
+.pos{color:#2e7d32}.neg{color:#c62828}
+.formula{background:#f5f5f5;border:1px solid #e0e0e0;border-radius:4px;padding:7px 10px;font-size:11px;color:#555;margin-top:6px;line-height:1.8}
+.formula b{color:#1a1a2e}
+.toggle{display:flex;align-items:center;gap:4px;font-size:11.5px;margin:2px 0}
+.toggle input{margin:0}
+.note{font-size:10.5px;color:#888;margin-top:5px;line-height:1.5}
+.rate-info{font-size:10.5px;color:#1565c0;margin:3px 0 2px;line-height:1.5;background:#f0f4ff;padding:3px 8px;border-radius:3px;display:inline-block}
+.rate-info2{font-size:10.5px;color:#0d47a1;margin:3px 0 2px;line-height:1.5;background:#e3f2fd;padding:3px 8px;border-radius:3px;display:inline-block}
+.disclaimer{background:#fff8e1;border:1px solid #ffe082;border-radius:4px;padding:7px 10px;margin-top:8px;font-size:10.5px;color:#795548;line-height:1.6}
+.disclaimer b{color:#5d4037}
+.method2-card{border-left:3px solid #1565c0;background:linear-gradient(to right,#f8faff,#fff 3%)}
+.method2-card h2{border-bottom-color:#1565c0;color:#0d47a1}
+.method-divider{height:3px;background:linear-gradient(to right,#4361ee,#1565c0,#4361ee);border-radius:2px;margin:4px 0 10px;opacity:.6}
+.method-label{display:inline-block;font-size:10px;padding:1px 6px;border-radius:3px;font-weight:600;vertical-align:middle;margin-left:6px}
+.method-label.m1{background:#e8eaf6;color:#283593}
+.method-label.m2{background:#e3f2fd;color:#0d47a1}
+.k-display{font-size:12px;color:#555;margin:4px 0}
+.k-display b{color:#1565c0}
+.a2-warn{font-size:11px;color:#c62828;margin:2px 0 4px 190px;display:none;line-height:1.5}
+.a2-hint{font-size:10.5px;color:#888;margin:1px 0 2px 190px}
+
+@media(max-width:640px){.rg{grid-template-columns:1fr}.pr label{width:140px}table{font-size:10px}th,td{padding:3px 3px}}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>工资优化计算器</h1>
+
+<div class="card">
+<h2>基本参数</h2>
+<div class="pr"><label>A1 · 当前税前工资</label><input type="number" id="iA1" min="0" step="100"><span class="u">元/月</span></div>
+<div class="pr"><label>A2 · 预交基数工资（方式一）</label><input type="number" id="iA2" min="0" step="100"><span class="u">元/月</span><label style="width:170px;margin-left:16px">A2 · 预交基数工资（方式二）</label><input type="number" id="iA2b" min="0" step="100"><span class="u">元/月（留空则同方式一）</span></div>
+<div class="a2-hint">说明：预交基数工资（A2）不能低于当前税前工资（A1），社保缴费基数应按职工实际工资确定</div>
+<div class="a2-warn" id="a2Warn"></div>
+<div class="pr"><label>B · 当前社保缴费基数</label><input type="number" id="iB" min="0" step="100"><span class="u">元/月</span></div>
+<div class="pr"><label>B2 · 调整前公积金基数</label><input type="number" id="iB2" min="0" step="100"><span class="u">元/月（留空则同B）</span></div>
+<div class="pr"><label>k · 公司承担新增社保比例</label><input type="number" id="iK" min="0" max="100" step="5"><span class="u">%</span></div>
+<div class="formula"><b>平衡公式：</b><br>A1 + B×调整前公司社保比例 + B2×调整前公司公积金比例 + (A2−B)×调整后公司社保比例×k = C + A2×调整后公司社保比例 + A2×调整后公司公积金比例<br><b>求解：</b><br>C = A1 + B×调整前公司社保比例 + B2×调整前公司公积金比例 + (A2−B)×调整后公司社保比例×k − A2×调整后公司社保比例 − A2×调整后公司公积金比例</div>
+<div class="disclaimer"><b>声明：</b>本试算结果仅供参考，不作为薪资调整的最终依据。<b style="color:#c62828">本工具不保证计算结果的准确性，使用者须自行核实所有数据，因计算错误或数据不准确导致的任何损失，本工具开发者不承担任何法律责任。</b>社保缴费基数应按职工实际工资确定，各项保险公积金比例、缴费基数及政策参数均可能因地区、时间而异，请以当地社保局、公积金中心最新规定为准。薪酬结构调整可能影响贷款资质、社保待遇等，请综合评估个人实际情况。</div>
+</div>
+
+<div class="card">
+<h2>五险一金比例 <span style="font-size:10px;color:#888;font-weight:normal">（默认值，可调整）</span></h2>
+<div class="rg">
+<div>
+<h3>社保比例 (%)</h3>
+<table>
+<tr><th class="tc">险种</th><th>公司</th><th>个人</th></tr>
+<tr><td>养老保险</td><td><input type="number" id="rPE" value="16" step="0.1" class="rw"></td><td><input type="number" id="rPR" value="8" step="0.1" class="rw"></td></tr>
+<tr><td>医疗保险(含生育)</td><td><input type="number" id="rME" value="9.8" step="0.1" class="rw"></td><td><input type="number" id="rMR" value="2" step="0.1" class="rw"></td></tr>
+<tr><td>失业保险</td><td><input type="number" id="rUE" value="0.5" step="0.1" class="rw"></td><td><input type="number" id="rUR" value="0.5" step="0.1" class="rw"></td></tr>
+<tr><td>工伤保险</td><td><input type="number" id="rIE" value="0.2" step="0.1" class="rw"></td><td class="tc">—</td></tr>
+</table>
+<div class="toggle"><input type="checkbox" id="chkBig" checked><label for="chkBig">大额医疗</label><input type="number" id="rBig" value="3" step="1" class="rw" style="width:55px"><span class="u">元/月(个人固定)</span></div>
+</div>
+<div>
+<h3>公积金比例 (%)</h3>
+<table>
+<tr><th class="tc">项目</th><th>公司</th><th>个人</th></tr>
+<tr><td>住房公积金</td><td><input type="number" id="rHE" value="12" step="1" class="rw"></td><td><input type="number" id="rHR" value="12" step="1" class="rw"></td></tr>
+</table>
+<h3 style="margin-top:10px">比例汇总</h3>
+<div class="sb" style="font-size:11.5px">
+<div class="sr"><span>公司社保合计</span><span id="zCS">—</span></div>
+<div class="sr"><span>个人社保合计</span><span id="zPS">—</span></div>
+<div class="sr"><span>公积金(公司/个人)</span><span id="zHF">—</span></div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="card">
+<h2>调整后公司比例（方式一）<span class="method-label m1">方式一</span> <span style="font-size:10px;color:#888;font-weight:normal">（默认与调整前相同，可修改）</span></h2>
+<div class="rg">
+<div>
+<h3>调整后公司社保比例 (%)</h3>
+<table>
+<tr><th class="tc">险种</th><th>公司</th></tr>
+<tr><td>养老保险</td><td><input type="number" id="rPE2" value="16" step="0.1" class="rw"></td></tr>
+<tr><td>医疗保险(含生育)</td><td><input type="number" id="rME2" value="9.8" step="0.1" class="rw"></td></tr>
+<tr><td>失业保险</td><td><input type="number" id="rUE2" value="0.5" step="0.1" class="rw"></td></tr>
+<tr><td>工伤保险</td><td><input type="number" id="rIE2" value="0.2" step="0.1" class="rw"></td></tr>
+</table>
+</div>
+<div>
+<h3>调整后公积金比例 (%)</h3>
+<table>
+<tr><th class="tc">项目</th><th>公司</th><th>个人</th></tr>
+<tr><td>住房公积金</td><td><input type="number" id="rHE2" value="12" step="1" class="rw"></td><td><input type="number" id="rHR2" value="12" step="1" class="rw"></td></tr>
+</table>
+<div class="sb" style="font-size:11.5px;margin-top:10px">
+<div class="sr"><span>调整后公司社保合计</span><span id="zCS2">—</span></div>
+<div class="sr"><span>调整后公积金(公司/个人)</span><span id="zHF2">—</span></div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="card">
+<h2>年度社保基数明细（方式一）<span class="method-label m1">方式一</span></h2>
+<div id="rateInfo1" class="rate-info"></div>
+<div class="k-display">k · 公司补贴比例：<b id="sK1"></b>%</div>
+<div class="pr" style="margin-top:4px"><label>全年浮动金额</label><input type="number" id="iFloat" value="0" min="0" step="1000"><span class="u">元/年（额外年终奖等）</span></div>
+<div class="pr"><label>调整后工资 C₁</label><span id="sC1" style="font-weight:700;color:#1565c0;font-size:15px"></span><span class="u">元/月</span></div>
+<div id="tYearly1"></div>
+</div>
+
+<div class="method-divider"></div>
+
+<div class="card method2-card">
+<h2>调整后公司比例（方式二）<span class="method-label m2">方式二</span> <span style="font-size:10px;color:#888;font-weight:normal">（公积金默认5%，工资重新计算）</span></h2>
+<div class="rg">
+<div>
+<h3>调整后公司社保比例 (%) <span style="font-size:9.5px;color:#999">（同方式一）</span></h3>
+<table>
+<tr><th class="tc">险种</th><th>公司</th></tr>
+<tr><td>养老保险</td><td id="d2PE" class="tc" style="background:#f5f5f5">—</td></tr>
+<tr><td>医疗保险(含生育)</td><td id="d2ME" class="tc" style="background:#f5f5f5">—</td></tr>
+<tr><td>失业保险</td><td id="d2UE" class="tc" style="background:#f5f5f5">—</td></tr>
+<tr><td>工伤保险</td><td id="d2IE" class="tc" style="background:#f5f5f5">—</td></tr>
+</table>
+</div>
+<div>
+<h3>调整后公积金比例 (%)</h3>
+<table>
+<tr><th class="tc">项目</th><th>公司</th><th>个人</th></tr>
+<tr><td>住房公积金</td><td><input type="number" id="rHE2b" value="5" step="1" class="rw"></td><td><input type="number" id="rHR2b" value="5" step="1" class="rw"></td></tr>
+</table>
+<div class="sb" style="font-size:11.5px;margin-top:10px">
+<div class="sr"><span>方式二公积金(公司/个人)</span><span id="zHF2b">—</span></div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="card method2-card">
+<h2>年度社保基数明细（方式二）<span class="method-label m2">方式二</span></h2>
+<div id="rateInfo2" class="rate-info2"></div>
+
+<div class="k-display">k · 公司补贴比例：<b id="sK2"></b>%（同方式一）</div>
+<div class="pr"><label>调整后工资 C₂</label><span id="sC2" style="font-weight:700;color:#0d47a1;font-size:15px"></span><span class="u">元/月（按方式二比例重新计算）</span></div>
+<div id="tYearly2"></div>
+<div class="note" style="margin-top:6px">方式二与方式一的区别：公积金比例不同（方式二默认公司5%+个人5%），工资C₂按方式二比例通过平衡公式重新计算。五险一金缴纳金额和个人到手均不同。</div>
+</div>
+
+
+<div class="card" style="background:#f9f9f9;border:1px solid #e0e0e0">
+<h2 style="font-size:12px;color:#888;border-bottom:1px solid #ddd">关于本工具</h2>
+<div style="font-size:10.5px;color:#666;line-height:1.7;margin-top:6px">
+本工具仅供个人学习参考，帮助理解薪酬结构与五险一金、个税之间的关系。社保缴费基数应按职工实际工资确定，各项比例及政策参数可能因地区、时间而异，请以当地社保局、公积金中心及税务部门最新规定为准。薪酬结构调整可能影响贷款资质、社保待遇等，请综合评估个人实际情况。本工具不构成降低社保缴费基数的建议，试算结果不作为薪资调整的最终依据。本工具基于公开政策参数进行估算，<b style="color:#c62828">不保证计算结果的准确性，使用者须自行核实所有数据，因计算错误或数据不准确导致的任何损失，本工具开发者不承担任何法律责任。</b>
+</div>
+<div style="margin-top:8px;font-size:10.5px;color:#888;border-top:1px dashed #ddd;padding-top:6px">
+如有问题或建议，请邮件反馈至 <a href="mailto:f352@foxmail.com" style="color:#1565c0">f352@foxmail.com</a>
+</div>
+</div>
+
+</div>
+
+<script>
+function calc(){
+  var A1=parseFloat(document.getElementById('iA1').value)||0;
+  var A2=parseFloat(document.getElementById('iA2').value)||0;
+  var A2b=parseFloat(document.getElementById('iA2b').value)||0;
+  if(A2b<=0) A2b=A2;
+  var a2w=document.getElementById('a2Warn');
+  var a2msgs=[];
+  if(A2>0&&A2<A1) a2msgs.push('方式一预交基数 A2('+A2+') 低于当前税前工资 A1('+A1+')');
+  if(A2b>0&&A2b<A1) a2msgs.push('方式二预交基数 A2b('+A2b+') 低于当前税前工资 A1('+A1+')');
+  if(a2msgs.length>0){a2w.innerHTML=a2msgs.join('<br>');a2w.style.display='block';}else{a2w.style.display='none';}
+  var B=parseFloat(document.getElementById('iB').value)||0;
+  var B2=parseFloat(document.getElementById('iB2').value)||0;
+  if(B2<=0) B2=B;
+  var k=(parseFloat(document.getElementById('iK').value)||0)/100;
+
+  var rPE=parseFloat(document.getElementById('rPE').value)||0;
+  var rPR=parseFloat(document.getElementById('rPR').value)||0;
+  var rME=parseFloat(document.getElementById('rME').value)||0;
+  var rMR=parseFloat(document.getElementById('rMR').value)||0;
+  var rUE=parseFloat(document.getElementById('rUE').value)||0;
+  var rUR=parseFloat(document.getElementById('rUR').value)||0;
+  var rIE=parseFloat(document.getElementById('rIE').value)||0;
+  var rHE=parseFloat(document.getElementById('rHE').value)||0;
+  var rHR=parseFloat(document.getElementById('rHR').value)||0;
+  var rPE2=parseFloat(document.getElementById('rPE2').value)||0;
+  var rME2=parseFloat(document.getElementById('rME2').value)||0;
+  var rUE2=parseFloat(document.getElementById('rUE2').value)||0;
+  var rIE2=parseFloat(document.getElementById('rIE2').value)||0;
+  var rHE2=parseFloat(document.getElementById('rHE2').value)||0;
+  var rHR2=parseFloat(document.getElementById('rHR2').value)||0;
+  var rHE2b=parseFloat(document.getElementById('rHE2b').value)||0;
+  var rHR2b=parseFloat(document.getElementById('rHR2b').value)||0;
+  var bigOn=document.getElementById('chkBig').checked;
+  var bigAmt=parseFloat(document.getElementById('rBig').value)||0;
+
+  var rCS=(rPE+rME+rUE+rIE)/100;
+  var rPS=(rPR+rMR+rUR)/100;
+  var rHFE=rHE/100;
+  var rHFR=rHR/100;
+  var rCS2=(rPE2+rME2+rUE2+rIE2)/100;
+  var rHFE2=rHE2/100;
+  var rHR2_rate=rHR2/100;
+  var rHFE2b=rHE2b/100;
+  var rHR2b_rate=rHR2b/100;
+
+  document.getElementById('zCS').textContent=(rCS*100).toFixed(2)+'%';
+  document.getElementById('zPS').textContent=(rPS*100).toFixed(2)+'%';
+  document.getElementById('zHF').textContent=rHE.toFixed(1)+'% / '+rHR.toFixed(1)+'%';
+  document.getElementById('zCS2').textContent=(rCS2*100).toFixed(2)+'%';
+  document.getElementById('zHF2').textContent=rHE2.toFixed(1)+'% / '+rHR2.toFixed(1)+'%';
+  document.getElementById('zHF2b').textContent=rHE2b.toFixed(1)+'% / '+rHR2b.toFixed(1)+'%';
+
+  document.getElementById('d2PE').textContent=rPE2.toFixed(1);
+  document.getElementById('d2ME').textContent=rME2.toFixed(1);
+  document.getElementById('d2UE').textContent=rUE2.toFixed(1);
+  document.getElementById('d2IE').textContent=rIE2.toFixed(1);
+
+  // ===== 方式一：平衡公式求C1 =====
+  var C1=A1+B*rCS+B2*rHFE+(A2-B)*rCS2*k-A2*rCS2-A2*rHFE2;
+  // ===== 方式二：平衡公式求C2（用方式二公积金比例 + 方式二A2b）=====
+  var C2=A1+B*rCS+B2*rHFE+(A2b-B)*rCS2*k-A2b*rCS2-A2b*rHFE2b;
+
+  var items=[
+    {n:'养老保险',ce:rPE,pe:rPR},
+    {n:'医疗保险(含生育)',ce:rME,pe:rMR},
+    {n:'失业保险',ce:rUE,pe:rUR},
+    {n:'工伤保险',ce:rIE,pe:0}
+  ];
+  var items2=[
+    {n:'养老保险',ce:rPE2},
+    {n:'医疗保险(含生育)',ce:rME2},
+    {n:'失业保险',ce:rUE2},
+    {n:'工伤保险',ce:rIE2}
+  ];
+
+  function f2(v){return v.toFixed(2)}
+
+  var THRESHOLD=5000;
+  function calcTax(taxable){
+    if(taxable<=0)return 0;
+    if(taxable<=3000)return taxable*0.03;
+    if(taxable<=12000)return taxable*0.10-210;
+    if(taxable<=25000)return taxable*0.20-1410;
+    if(taxable<=35000)return taxable*0.25-2660;
+    if(taxable<=55000)return taxable*0.30-4410;
+    if(taxable<=80000)return taxable*0.35-7160;
+    return taxable*0.45-15160;
+  }
+
+  // 调整前五险一金
+  var tCompB=0,tPerB=0;
+  for(var i=0;i<items.length;i++){
+    tCompB+=B*items[i].ce/100;
+    tPerB+=B*items[i].pe/100;
+  }
+  var hfCompB_base=B2*rHFE;
+  var hfPerB_base=B2*rHFR;
+  tCompB+=hfCompB_base;
+  tPerB+=hfPerB_base;
+  var bigB=bigOn?bigAmt:0;
+  tPerB+=bigB;
+  var bCompIns=tCompB-hfCompB_base;
+  var bCostB=A1+tCompB;
+  var bPerInsAll=rPS*B+rHFR*B2+(bigOn?bigAmt:0);
+  var bTaxBase=A1-bPerInsAll;
+  var bTaxable=Math.max(0,bTaxBase-THRESHOLD);
+  var bTax=calcTax(bTaxable);
+  var bNet=A1-bPerInsAll-bTax;
+  var bTotal=bNet+B2*(rHFE+rHFR);
+
+  // Rate info
+  var ri1='公司社保 '+(rCS2*100).toFixed(2)+'%（养老'+rPE2+'% 医疗'+rME2+'% 失业'+rUE2+'% 工伤'+rIE2+'%）';
+  ri1+=' 公积金 公司'+rHE2.toFixed(1)+'% 个人'+rHR2.toFixed(1)+'%';
+  document.getElementById('rateInfo1').textContent=ri1;
+  var ri2='公司社保 '+(rCS2*100).toFixed(2)+'%（同方式一）';
+  ri2+=' 公积金 公司'+rHE2b.toFixed(1)+'% 个人'+rHR2b.toFixed(1)+'%';
+  document.getElementById('rateInfo2').textContent=ri2;
+
+  document.getElementById('sK1').textContent=(k*100).toFixed(0);
+  document.getElementById('sK2').textContent=(k*100).toFixed(0);
+  document.getElementById('sC1').textContent=C1.toFixed(2);
+  document.getElementById('sC2').textContent=C2.toFixed(2);
+
+  // ===== 年度社保基数明细 =====
+  var floatAmt=parseFloat(document.getElementById('iFloat').value)||0;
+  var yCompBase=A1+tCompB;
+
+  function yearlyHTML(container,A2val,Cval,hfCompR,hfPerR,hfCompR_pct,hfPerR_pct){
+    var yBases=[A2val, (A1*6+Cval*6+floatAmt)/12, (Cval*12+floatAmt)/12, (Cval*12+floatAmt)/12];
+    var yLabels=['第一年(基数A2)', '第二年(过渡期)', '第三年', '第四年'];
+    var hy='<table><tr><th>年份</th><th>社保基数</th>';
+    hy+='<th>公司五险<br><span class="u8">('+(rCS2*100).toFixed(2)+'%)</span></th>';
+    hy+='<th>公司公积金<br><span class="u8">('+hfCompR_pct+')</span></th>';
+    hy+='<th>个人五险<br><span class="u8">('+(rPS*100).toFixed(2)+'%)</span></th>';
+    hy+='<th>个人公积金<br><span class="u8">('+hfPerR_pct+')</span></th>';
+    hy+='<th>公司总成本(月)</th>';
+    hy+='<th>公司增加成本</th>';
+    hy+='<th>交税基数</th>';
+    hy+='<th>个税</th>';
+    hy+='<th>实际到手</th>';
+    hy+='<th>实际到手(含公积金)</th></tr>';
+    // Baseline
+    hy+='<tr style="background:#e8eaf6;font-weight:700"><td>调整前</td>';
+    hy+='<td>'+f2(B)+'</td>';
+    hy+='<td>'+f2(bCompIns)+'</td>';
+    hy+='<td>'+f2(B2*rHFE)+'</td>';
+    hy+='<td>'+f2(B*rPS)+'</td>';
+    hy+='<td>'+f2(B2*rHFR)+'</td>';
+    hy+='<td style="font-weight:700">'+f2(bCostB)+' 元</td>';
+    hy+='<td>—</td>';
+    hy+='<td>'+f2(bTaxBase)+'</td>';
+    hy+='<td class="neg">'+f2(bTax)+'</td>';
+    hy+='<td style="font-weight:700" class="pos">'+f2(bNet)+'</td>';
+    hy+='<td style="font-weight:700" class="pos">'+f2(bTotal)+'</td></tr>';
+    // Yearly rows
+    for(var yi=0;yi<4;yi++){
+      var yBase=yBases[yi];
+      var yCompIns=0;
+      for(var j=0;j<items2.length;j++) yCompIns+=yBase*items2[j].ce/100;
+      var yHfComp=yBase*hfCompR;
+      var yCostC=Cval+yCompIns+yHfComp;
+      var yPerIns=yBase*rPS+yBase*hfPerR+(bigOn?bigAmt:0);
+      var yHfAcc=yBase*(hfCompR+hfPerR);
+      var yTaxBase=Cval-yPerIns;
+      var yTaxable=Math.max(0,yTaxBase-THRESHOLD);
+      var yTax=calcTax(yTaxable);
+      var yNet=Cval-yPerIns-yTax;
+      var yTotal=yNet+yHfAcc;
+      hy+='<tr'+(yi===0?' class="hl"':'')+'><td>'+yLabels[yi]+'</td>';
+      hy+='<td>'+f2(yBase)+'</td>';
+      hy+='<td>'+f2(yCompIns)+'</td>';
+      hy+='<td>'+f2(yHfComp)+'</td>';
+      hy+='<td>'+f2(yBase*rPS)+'</td>';
+      hy+='<td>'+f2(yBase*hfPerR)+'</td>';
+      hy+='<td style="font-weight:700">'+f2(yCostC)+' 元</td>';
+      hy+='<td style="font-weight:700;color:'+(yCostC>yCompBase?'#c62828':'#2e7d32')+'">'+(yCostC-yCompBase>=0?'+':'')+f2(yCostC-yCompBase)+'</td>';
+      hy+='<td>'+f2(yTaxBase)+'</td>';
+      hy+='<td class="neg">'+f2(yTax)+'</td>';
+      hy+='<td style="font-weight:700" class="pos">'+f2(yNet)+'</td>';
+      hy+='<td style="font-weight:700" class="pos">'+f2(yTotal)+'</td></tr>';
+    }
+    hy+='</table>';
+    hy+='<div style="margin-top:6px;font-size:10.5px;color:#555;line-height:1.7">';
+    hy+='<b>公司成本变化：</b>调整前 '+f2(yCompBase)+' 元/月';
+    hy+=' → 第一年 '+f2(Cval+yBases[0]*(rCS2+hfCompR))+' 元';
+    hy+=' → 第三年起 '+f2(Cval+yBases[2]*(rCS2+hfCompR))+' 元</div>';
+    document.getElementById(container).innerHTML=hy;
+  }
+
+  yearlyHTML('tYearly1',A2,C1,rHFE2,rHR2_rate,rHE2.toFixed(1)+'%',rHR2.toFixed(1)+'%');
+  yearlyHTML('tYearly2',A2b,C2,rHFE2b,rHR2b_rate,rHE2b.toFixed(1)+'%',rHR2b.toFixed(1)+'%');
+}
+
+var inputs=document.querySelectorAll('input');
+for(var i=0;i<inputs.length;i++){
+  inputs[i].addEventListener('input',calc);
+  inputs[i].addEventListener('change',calc);
+}
+document.getElementById('chkBig').addEventListener('change',calc);
+calc();
+</script>
+</body>
+</html>

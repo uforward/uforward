@@ -2,6 +2,9 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>工资优化计算器</title>
 <style>
@@ -56,7 +59,7 @@ tr.bl{background:#e3f2fd;font-weight:600}
 </head>
 <body>
 <div class="container">
-<h1>工资优化计算器</h1>
+<h1>工资优化计算器 <span style="font-size:11px;color:#999;font-weight:normal">v2.5 (2026-08-24)</span></h1>
 
 <div class="card">
 <h2>基本参数</h2>
@@ -132,7 +135,7 @@ tr.bl{background:#e3f2fd;font-weight:600}
 <h2>年度社保基数明细（方式一）<span class="method-label m1">方式一</span></h2>
 <div id="rateInfo1" class="rate-info"></div>
 <div class="k-display">k · 公司补贴比例：<b id="sK1"></b>%</div>
-<div class="pr" style="margin-top:4px"><label>全年浮动金额</label><input type="number" id="iFloat" value="0" min="0" step="1000"><span class="u">元/年（额外年终奖等）</span></div>
+<div class="pr" style="margin-top:4px"><label>当前浮动金额</label><input type="number" id="iFloat" value="0" min="0" step="1000" disabled style="background:#eee;color:#999"><span class="u">元/年（方式一不使用此参数）</span></div>
 <div class="pr"><label>调整后工资 C₁</label><span id="sC1" style="font-weight:700;color:#1565c0;font-size:15px"></span><span class="u">元/月</span></div>
 <div id="tYearly1"></div>
 </div>
@@ -170,6 +173,7 @@ tr.bl{background:#e3f2fd;font-weight:600}
 <div id="rateInfo2" class="rate-info2"></div>
 
 <div class="k-display">k · 公司补贴比例：<b id="sK2"></b>%（同方式一）</div>
+<div class="pr" style="margin-top:4px"><label>当前浮动金额</label><input type="number" id="iFloat2" value="0" min="0" step="1000"><span class="u">元/年（额外加班费等）</span></div>
 <div class="pr"><label>调整后工资 C₂</label><span id="sC2" style="font-weight:700;color:#0d47a1;font-size:15px"></span><span class="u">元/月（按方式二比例重新计算）</span></div>
 <div id="tYearly2"></div>
 <div class="note" style="margin-top:6px">方式二与方式一的区别：公积金比例不同（方式二默认公司5%+个人5%），工资C₂按方式二比例通过平衡公式重新计算。五险一金缴纳金额和个人到手均不同。</div>
@@ -182,6 +186,7 @@ tr.bl{background:#e3f2fd;font-weight:600}
 本工具仅供个人学习参考，帮助理解薪酬结构与五险一金、个税之间的关系。社保缴费基数应按职工实际工资确定，各项比例及政策参数可能因地区、时间而异，请以当地社保局、公积金中心及税务部门最新规定为准。薪酬结构调整可能影响贷款资质、社保待遇等，请综合评估个人实际情况。本工具不构成降低社保缴费基数的建议，试算结果不作为薪资调整的最终依据。本工具基于公开政策参数进行估算，<b style="color:#c62828">不保证计算结果的准确性，使用者须自行核实所有数据，因计算错误或数据不准确导致的任何损失，本工具开发者不承担任何法律责任。</b>
 </div>
 <div style="margin-top:8px;font-size:10.5px;color:#888;border-top:1px dashed #ddd;padding-top:6px">
+本工具以 <a href="https://github.com/uforward/uforward/blob/master/LICENSE" target="_blank" rel="noopener" style="color:#1565c0">MIT 许可证</a>开源，源码托管于 GitHub：<a href="https://github.com/uforward/uforward/blob/master/tools/salary-calc/cn-salary-calc.html" target="_blank" rel="noopener" style="color:#1565c0">uforward/uforward · cn-salary-calc.html</a><br>
 如有问题或建议，请邮件反馈至 <a href="mailto:f352@foxmail.com" style="color:#1565c0">f352@foxmail.com</a>
 </div>
 </div>
@@ -314,30 +319,45 @@ function calc(){
 
   // ===== 年度社保基数明细 =====
   var floatAmt=parseFloat(document.getElementById('iFloat').value)||0;
+  var floatAmt2=parseFloat(document.getElementById('iFloat2').value)||0;
   var yCompBase=A1+tCompB;
 
   function yearlyHTML(container,A2val,Cval,hfCompR,hfPerR,hfCompR_pct,hfPerR_pct){
-    var yBases=[A2val, (A1*6+Cval*6+floatAmt)/12, (Cval*12+floatAmt)/12, (Cval*12+floatAmt)/12];
-    var yLabels=['第一年(基数A2)', '第二年(过渡期)', '第三年', '第四年'];
-    var hy='<table><tr><th>年份</th><th>社保基数</th>';
+    var yBases, yLabels;
+    if(container==='tYearly1'){
+      yBases=[B, A2val, (A1*6+Cval*6)/12, Cval];
+      yLabels=['第一年(半年)', '第二年(基数A2)', '第三年', '第四年'];
+    } else {
+      yBases=[A2val, (A1*12+floatAmt2)/12, Cval, Cval];
+      yLabels=['第一年(基数A2·半年)', '第二年(过渡期)', '第三年', '第四年'];
+    }
+    var yCompInsArr=[];
+    for(var _i=0;_i<4;_i++){
+      if(container==='tYearly1'&&_i===0){var _c=0;for(var _j=0;_j<items.length;_j++)_c+=yBases[_i]*items[_j].ce/100;yCompInsArr[_i]=_c;}
+      else{var _c=0;for(var _j=0;_j<items2.length;_j++)_c+=yBases[_i]*items2[_j].ce/100;yCompInsArr[_i]=_c;}
+    }
+    var hy='<table><tr><th>年份</th><th>工资</th><th>社保基数</th>';
     hy+='<th>公司五险<br><span class="u8">('+(rCS2*100).toFixed(2)+'%)</span></th>';
     hy+='<th>公司公积金<br><span class="u8">('+hfCompR_pct+')</span></th>';
     hy+='<th>个人五险<br><span class="u8">('+(rPS*100).toFixed(2)+'%)</span></th>';
     hy+='<th>个人公积金<br><span class="u8">('+hfPerR_pct+')</span></th>';
     hy+='<th>公司总成本(月)</th>';
     hy+='<th>公司增加成本</th>';
+    hy+='<th>公司五险增加成本</th>';
     hy+='<th>交税基数</th>';
     hy+='<th>个税</th>';
     hy+='<th>实际到手</th>';
     hy+='<th>实际到手(含公积金)</th></tr>';
     // Baseline
     hy+='<tr style="background:#e8eaf6;font-weight:700"><td>调整前</td>';
+    hy+='<td>'+f2(A1)+'</td>';
     hy+='<td>'+f2(B)+'</td>';
     hy+='<td>'+f2(bCompIns)+'</td>';
     hy+='<td>'+f2(B2*rHFE)+'</td>';
     hy+='<td>'+f2(B*rPS)+'</td>';
     hy+='<td>'+f2(B2*rHFR)+'</td>';
     hy+='<td style="font-weight:700">'+f2(bCostB)+' 元</td>';
+    hy+='<td>—</td>';
     hy+='<td>—</td>';
     hy+='<td>'+f2(bTaxBase)+'</td>';
     hy+='<td class="neg">'+f2(bTax)+'</td>';
@@ -346,18 +366,19 @@ function calc(){
     // Yearly rows
     for(var yi=0;yi<4;yi++){
       var yBase=yBases[yi];
-      var yCompIns=0;
-      for(var j=0;j<items2.length;j++) yCompIns+=yBase*items2[j].ce/100;
+      var ySalary=(container==='tYearly1'&&yi===0)?A1:Cval;
+      var yCompIns=yCompInsArr[yi];
       var yHfComp=yBase*hfCompR;
-      var yCostC=Cval+yCompIns+yHfComp;
-      var yPerIns=yBase*rPS+yBase*hfPerR+(bigOn?bigAmt:0);
+      var yCostC=ySalary+yCompIns+yHfComp;
+      var yPerIns=yBase*rPS+yBase*hfPerR+(yi===0&&bigOn?bigAmt:0);
       var yHfAcc=yBase*(hfCompR+hfPerR);
-      var yTaxBase=Cval-yPerIns;
+      var yTaxBase=ySalary-yPerIns;
       var yTaxable=Math.max(0,yTaxBase-THRESHOLD);
       var yTax=calcTax(yTaxable);
-      var yNet=Cval-yPerIns-yTax;
+      var yNet=ySalary-yPerIns-yTax;
       var yTotal=yNet+yHfAcc;
       hy+='<tr'+(yi===0?' class="hl"':'')+'><td>'+yLabels[yi]+'</td>';
+      hy+='<td>'+f2(ySalary)+'</td>';
       hy+='<td>'+f2(yBase)+'</td>';
       hy+='<td>'+f2(yCompIns)+'</td>';
       hy+='<td>'+f2(yHfComp)+'</td>';
@@ -365,6 +386,7 @@ function calc(){
       hy+='<td>'+f2(yBase*hfPerR)+'</td>';
       hy+='<td style="font-weight:700">'+f2(yCostC)+' 元</td>';
       hy+='<td style="font-weight:700;color:'+(yCostC>yCompBase?'#c62828':'#2e7d32')+'">'+(yCostC-yCompBase>=0?'+':'')+f2(yCostC-yCompBase)+'</td>';
+      hy+='<td style="font-weight:700;color:'+(yCompIns>bCompIns+0.005?'#c62828':'#2e7d32')+'">'+(yCompIns-bCompIns>=0?'+':'')+f2(yCompIns-bCompIns)+'</td>';
       hy+='<td>'+f2(yTaxBase)+'</td>';
       hy+='<td class="neg">'+f2(yTax)+'</td>';
       hy+='<td style="font-weight:700" class="pos">'+f2(yNet)+'</td>';
@@ -372,9 +394,18 @@ function calc(){
     }
     hy+='</table>';
     hy+='<div style="margin-top:6px;font-size:10.5px;color:#555;line-height:1.7">';
-    hy+='<b>公司成本变化：</b>调整前 '+f2(yCompBase)+' 元/月';
-    hy+=' → 第一年 '+f2(Cval+yBases[0]*(rCS2+hfCompR))+' 元';
-    hy+=' → 第三年起 '+f2(Cval+yBases[2]*(rCS2+hfCompR))+' 元</div>';
+    hy+='<div style="font-size:10.5px;color:#888;line-height:1.5;margin-bottom:3px">备注：第二年从第一年后半年开始算。</div>';
+    if(container==='tYearly1'){
+      hy+='<b>公司成本变化：</b>调整前 '+f2(yCompBase)+' 元/月';
+      hy+=' → 第一年 '+f2(A1+B*(rCS+rHFE))+' 元（同调整前）';
+      hy+=' → 第二年 '+f2(Cval+yBases[1]*(rCS2+hfCompR))+' 元';
+      hy+=' → 第三年 '+f2(Cval+yBases[2]*(rCS2+hfCompR))+' 元</div>';
+    } else {
+      hy+='<b>公司成本变化：</b>调整前 '+f2(yCompBase)+' 元/月';
+      hy+=' → 第一年 '+f2(Cval+A2val*(rCS2+hfCompR))+' 元';
+      hy+=' → 第二年 '+f2(Cval+yBases[1]*(rCS2+hfCompR))+' 元';
+      hy+=' → 第三年 '+f2(Cval+Cval*(rCS2+hfCompR))+' 元</div>';
+    }
     document.getElementById(container).innerHTML=hy;
   }
 

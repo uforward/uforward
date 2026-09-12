@@ -6,7 +6,7 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>工资优化计算器_预交基数</title>
+<title>工资优化计算器_成本不变</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:-apple-system,"Microsoft YaHei","PingFang SC",sans-serif;background:#f0f2f5;color:#333;line-height:1.6;padding:12px}
@@ -51,6 +51,7 @@ tr.bl{background:#e3f2fd;font-weight:600}
 .method-label.m2{background:#e3f2fd;color:#0d47a1}
 .k-display{font-size:12px;color:#555;margin:4px 0}
 .k-display b{color:#1565c0}
+.k-display .warn{color:#c62828;font-size:10.5px;font-weight:normal}
 .a2-warn{font-size:11px;color:#c62828;margin:2px 0 4px 190px;display:none;line-height:1.5}
 .a2-hint{font-size:10.5px;color:#888;margin:1px 0 2px 190px}
 
@@ -59,18 +60,17 @@ tr.bl{background:#e3f2fd;font-weight:600}
 </head>
 <body>
 <div class="container">
-<h1>工资优化计算器_预交基数 <span style="font-size:11px;color:#999;font-weight:normal">v2.5 (2026-08-24)</span></h1>
+<h1>工资优化计算器_成本不变 <span style="font-size:11px;color:#999;font-weight:normal">v2.5 (2026-08-24)</span></h1>
 
 <div class="card">
 <h2>基本参数</h2>
 <div class="pr"><label>A1 · 当前税前工资</label><input type="number" id="iA1" min="0" step="100"><span class="u">元/月</span></div>
-<div class="pr"><label>A2 · 预交基数工资（方式一）</label><input type="number" id="iA2" min="0" step="100"><span class="u">元/月</span><label style="width:170px;margin-left:16px">A2 · 预交基数工资（方式二）</label><input type="number" id="iA2b" min="0" step="100"><span class="u">元/月（留空则同方式一）</span></div>
+<div class="pr"><label>A2 · 预交基数工资（方式一）</label><input type="number" id="iA2" min="0" step="100"><span class="u">元/月</span><label style="width:170px;margin-left:16px">A2 · 预交基数工资（方式二）</label><input type="number" id="iA2b" min="0" step="100"><span class="u">元/月（默认同方式一）</span></div>
 <div class="a2-hint">说明：预交基数工资（A2）不能低于当前税前工资（A1），社保缴费基数应按职工实际工资确定</div>
 <div class="a2-warn" id="a2Warn"></div>
 <div class="pr"><label>B · 当前社保缴费基数</label><input type="number" id="iB" min="0" step="100"><span class="u">元/月</span></div>
-<div class="pr"><label>B2 · 调整前公积金基数</label><input type="number" id="iB2" min="0" step="100"><span class="u">元/月（留空则同B）</span></div>
-<div class="pr"><label>k · 公司承担新增社保比例</label><input type="number" id="iK" min="0" max="100" step="5"><span class="u">%</span></div>
-<div class="formula"><b>平衡公式：</b><br>A1 + B×调整前公司社保比例 + B2×调整前公司公积金比例 + (A2−B)×调整后公司社保比例×k = C + A2×调整后公司社保比例 + A2×调整后公司公积金比例<br><b>求解：</b><br>C = A1 + B×调整前公司社保比例 + B2×调整前公司公积金比例 + (A2−B)×调整后公司社保比例×k − A2×调整后公司社保比例 − A2×调整后公司公积金比例</div>
+<div class="pr"><label>B2 · 调整前公积金基数</label><input type="number" id="iB2" min="0" step="100"><span class="u">元/月（默认=B）</span></div>
+<div class="formula"><b>平衡公式：</b><br><b>第一步 · 求C（长期稳态公司成本不变，稳态时基数=工资C）：</b><br>A1 + B×调整前公司社保比例 + B2×调整前公司公积金比例 = C + C×调整后公司社保比例 + C×调整后公司公积金比例<br>→ C = (A1 + B×调整前公司社保比例 + B2×调整前公司公积金比例) ÷ (1 + 调整后公司社保比例 + 调整后公司公积金比例)<br><br><b>第二步 · 求k（k=过渡期公司承担新增社保比例）：</b><br>A1 + B×调整前公司社保比例 + B2×调整前公司公积金比例 + (A2−B)×调整后公司社保比例×k = C + A2×调整后公司社保比例 + A2×调整后公司公积金比例<br>→ k = (C + A2×调整后公司社保比例 + A2×调整后公司公积金比例 − A1 − B×调整前公司社保比例 − B2×调整前公司公积金比例) ÷ ((A2−B)×调整后公司社保比例)</div>
 <div class="disclaimer"><b>声明：</b>本试算结果仅供参考，不作为薪资调整的最终依据。<b style="color:#c62828">本工具不保证计算结果的准确性，使用者须自行核实所有数据，因计算错误或数据不准确导致的任何损失，本工具开发者不承担任何法律责任。</b>社保缴费基数应按职工实际工资确定，各项保险公积金比例、缴费基数及政策参数均可能因地区、时间而异，请以当地社保局、公积金中心最新规定为准。薪酬结构调整可能影响贷款资质、社保待遇等，请综合评估个人实际情况。</div>
 </div>
 
@@ -134,11 +134,12 @@ tr.bl{background:#e3f2fd;font-weight:600}
 <div class="card">
 <h2>年度社保基数明细（方式一）<span class="method-label m1">方式一</span></h2>
 <div id="rateInfo1" class="rate-info"></div>
-<div class="k-display">k · 公司补贴比例：<b id="sK1"></b>%</div>
+<div class="k-display">k · 过渡期公司承担新增社保比例（动态计算）：<b id="sK1"></b>% <span class="warn" id="sK1w"></span></div>
 <div class="pr" style="margin-top:4px"><label>当前浮动金额</label><input type="number" id="iFloat" value="0" min="0" step="1000" disabled style="background:#eee;color:#999"><span class="u">元/年（方式一不使用此参数）</span></div>
-<div class="pr"><label>调整后工资 C₁</label><span id="sC1" style="font-weight:700;color:#1565c0;font-size:15px"></span><span class="u">元/月</span></div>
+<div class="pr"><label>调整后工资 C₁（长期稳态成本不变求得）</label><span id="sC1" style="font-weight:700;color:#1565c0;font-size:15px"></span><span class="u">元/月</span></div>
 <div class="note" style="margin:4px 0 2px;color:#795548;background:#fff8e1;border-left:3px solid #ffb300;padding:4px 8px;border-radius:3px">扣除项说明：表中未单列「大额医疗」（个人 <b id="bigAmtNote1">3</b> 元/月），已计入「交税基数」与「实际到手」扣除。</div>
 <div id="tYearly1"></div>
+<div class="note" style="margin-top:6px">说明：C₁ 是按“<b>长期稳态</b>（第4年，社保基数=工资）公司成本与当前持平”求得的工资；过渡期（基数仍按 A2 申报，A2 通常高于 C₁）公司成本会临时高于当前，<b>k 即为过渡期公司承担的新增社保比例</b>，稳态后 k 归零、公司成本回到当前水平。</div>
 </div>
 
 <div class="method-divider"></div>
@@ -173,12 +174,12 @@ tr.bl{background:#e3f2fd;font-weight:600}
 <h2>年度社保基数明细（方式二）<span class="method-label m2">方式二</span></h2>
 <div id="rateInfo2" class="rate-info2"></div>
 
-<div class="k-display">k · 公司补贴比例：<b id="sK2"></b>%（同方式一）</div>
+<div class="k-display">k · 过渡期公司承担新增社保比例（按方式二比例动态计算）：<b id="sK2"></b>% <span class="warn" id="sK2w"></span></div>
 <div class="pr" style="margin-top:4px"><label>当前浮动金额</label><input type="number" id="iFloat2" value="0" min="0" step="1000"><span class="u">元/年（额外加班费等）</span></div>
-<div class="pr"><label>调整后工资 C₂</label><span id="sC2" style="font-weight:700;color:#0d47a1;font-size:15px"></span><span class="u">元/月（按方式二比例重新计算）</span></div>
+<div class="pr"><label>调整后工资 C₂（长期稳态成本不变求得）</label><span id="sC2" style="font-weight:700;color:#0d47a1;font-size:15px"></span><span class="u">元/月（按方式二比例重新计算）</span></div>
 <div class="note" style="margin:4px 0 2px;color:#795548;background:#fff8e1;border-left:3px solid #ffb300;padding:4px 8px;border-radius:3px">扣除项说明：表中未单列「大额医疗」（个人 <b id="bigAmtNote2">3</b> 元/月），已计入「交税基数」与「实际到手」扣除。</div>
 <div id="tYearly2"></div>
-<div class="note" style="margin-top:6px">方式二与方式一的区别：公积金比例不同（方式二默认公司5%+个人5%），工资C₂按方式二比例通过平衡公式重新计算。五险一金缴纳金额和个人到手均不同。</div>
+<div class="note" style="margin-top:6px">方式二与方式一的区别：公积金比例不同（方式二默认公司5%+个人5%）。工资C₂同样先按“<b>长期稳态</b>公司成本不变”条件用方式二比例求得，再代入平衡公式求出方式二<b>过渡期</b>自己的 k。五险一金缴纳金额和个人到手均不同。</div>
 </div>
 
 
@@ -188,7 +189,7 @@ tr.bl{background:#e3f2fd;font-weight:600}
 本工具仅供个人学习参考，帮助理解薪酬结构与五险一金、个税之间的关系。社保缴费基数应按职工实际工资确定，各项比例及政策参数可能因地区、时间而异，请以当地社保局、公积金中心及税务部门最新规定为准。薪酬结构调整可能影响贷款资质、社保待遇等，请综合评估个人实际情况。本工具不构成降低社保缴费基数的建议，试算结果不作为薪资调整的最终依据。本工具基于公开政策参数进行估算，<b style="color:#c62828">不保证计算结果的准确性，使用者须自行核实所有数据，因计算错误或数据不准确导致的任何损失，本工具开发者不承担任何法律责任。</b>
 </div>
 <div style="margin-top:8px;font-size:10.5px;color:#888;border-top:1px dashed #ddd;padding-top:6px">
-本工具以 <a href="https://github.com/uforward/uforward/blob/master/LICENSE" target="_blank" rel="noopener" style="color:#1565c0">MIT 许可证</a>开源，源码托管于 GitHub：<a href="https://github.com/uforward/uforward/blob/master/tools/salary-calc/cn-salary-calc.html" target="_blank" rel="noopener" style="color:#1565c0">uforward/uforward · cn-salary-calc.html</a><br>
+本工具以 <a href="https://github.com/uforward/uforward/blob/master/LICENSE" target="_blank" rel="noopener" style="color:#1565c0">MIT 许可证</a>开源，源码托管于 GitHub：<a href="https://github.com/uforward/uforward/blob/master/tools/salary-calc/cn-salary-calc-fixed.html" target="_blank" rel="noopener" style="color:#1565c0">uforward/uforward · cn-salary-calc-fixed.html</a><br>
 如有问题或建议，请邮件反馈至 <a href="mailto:f352@foxmail.com" style="color:#1565c0">f352@foxmail.com</a>
 </div>
 </div>
@@ -209,7 +210,6 @@ function calc(){
   var B=parseFloat(document.getElementById('iB').value)||0;
   var B2=parseFloat(document.getElementById('iB2').value)||0;
   if(B2<=0) B2=B;
-  var k=(parseFloat(document.getElementById('iK').value)||0)/100;
 
   var rPE=parseFloat(document.getElementById('rPE').value)||0;
   var rPR=parseFloat(document.getElementById('rPR').value)||0;
@@ -253,10 +253,23 @@ function calc(){
   document.getElementById('d2UE').textContent=rUE2.toFixed(1);
   document.getElementById('d2IE').textContent=rIE2.toFixed(1);
 
-  // ===== 方式一：平衡公式求C1 =====
-  var C1=A1+B*rCS+B2*rHFE+(A2-B)*rCS2*k-A2*rCS2-A2*rHFE2;
-  // ===== 方式二：平衡公式求C2（用方式二公积金比例 + 方式二A2b）=====
-  var C2=A1+B*rCS+B2*rHFE+(A2b-B)*rCS2*k-A2b*rCS2-A2b*rHFE2b;
+  // ===== 方式一：第一步 成本不变求C1 =====
+  var C1=(A1+B*rCS+B2*rHFE)/(1+rCS2+rHFE2);
+  // ===== 方式一：第二步 平衡公式求k1 =====
+  var dk1=(A2-B)*rCS2;
+  var k1=NaN;
+  if(Math.abs(dk1)>1e-9){
+    k1=(C1+A2*rCS2+A2*rHFE2-A1-B*rCS-B2*rHFE)/dk1;
+  }
+
+  // ===== 方式二：第一步 成本不变求C2（方式二公积金比例 + A2b）=====
+  var C2=(A1+B*rCS+B2*rHFE)/(1+rCS2+rHFE2b);
+  // ===== 方式二：第二步 平衡公式求k2 =====
+  var dk2=(A2b-B)*rCS2;
+  var k2=NaN;
+  if(Math.abs(dk2)>1e-9){
+    k2=(C2+A2b*rCS2+A2b*rHFE2b-A1-B*rCS-B2*rHFE)/dk2;
+  }
 
   var items=[
     {n:'养老保险',ce:rPE,pe:rPR},
@@ -314,8 +327,10 @@ function calc(){
   ri2+=' 公积金 公司'+rHE2b.toFixed(1)+'% 个人'+rHR2b.toFixed(1)+'%';
   document.getElementById('rateInfo2').textContent=ri2;
 
-  document.getElementById('sK1').textContent=(k*100).toFixed(0);
-  document.getElementById('sK2').textContent=(k*100).toFixed(0);
+  document.getElementById('sK1').textContent=isNaN(k1)?'—':(k1*100).toFixed(2);
+  document.getElementById('sK1w').textContent=isNaN(k1)?'（A2=B，无法反推k）':(k1<0?'（k为负，表示成本已降低）':(k1>1?'（k>100%，第一年公司新增成本高于基数增幅）':''));
+  document.getElementById('sK2').textContent=isNaN(k2)?'—':(k2*100).toFixed(2);
+  document.getElementById('sK2w').textContent=isNaN(k2)?'（A2=B，无法反推k）':(k2<0?'（k为负，表示成本已降低）':(k2>1?'（k>100%，第一年公司新增成本高于基数增幅）':''));
   document.getElementById('sC1').textContent=C1.toFixed(2);
   document.getElementById('sC2').textContent=C2.toFixed(2);
   var _bn1=document.getElementById('bigAmtNote1');if(_bn1)_bn1.textContent=bigOn?bigAmt:'0';
@@ -327,12 +342,14 @@ function calc(){
   var yCompBase=A1+tCompB;
 
   function yearlyHTML(container,A2val,Cval,hfCompR,hfPerR,hfCompR_pct,hfPerR_pct){
-    var yBases, yLabels;
+    var yBases, yTaxBases, yLabels;
     if(container==='tYearly1'){
       yBases=[B, A2val, (A1*6+Cval*6)/12, Cval];
+      yTaxBases=[A1, (A1*6+Cval*6)/12, (A1*6+Cval*6)/12, Cval];
       yLabels=['第一年(半年)', '第二年(基数A2)', '第三年', '第四年'];
     } else {
       yBases=[A2val, (A1*12+floatAmt2)/12, Cval, Cval];
+      yTaxBases=[A1, (A1*12+floatAmt2)/12, Cval, Cval];
       yLabels=['第一年(基数A2·半年)', '第二年(过渡期)', '第三年', '第四年'];
     }
     var yCompInsArr=[];
@@ -390,7 +407,7 @@ function calc(){
       hy+='<td>'+f2(yBase*rPS)+'</td>';
       hy+='<td>'+f2(yHfBase*hfPerR)+'</td>';
       hy+='<td style="font-weight:700">'+f2(yCostC)+' 元</td>';
-      hy+='<td style="font-weight:700;color:'+(yCostC>yCompBase?'#c62828':'#2e7d32')+'">'+(yCostC-yCompBase>=0?'+':'')+f2(yCostC-yCompBase)+'</td>';
+      hy+='<td style="font-weight:700;color:'+(yCostC>yCompBase+0.005?'#c62828':'#2e7d32')+'">'+(yCostC-yCompBase>=0?'+':'')+f2(yCostC-yCompBase)+'</td>';
       hy+='<td style="font-weight:700;color:'+(yCompIns>bCompIns+0.005?'#c62828':'#2e7d32')+'">'+(yCompIns-bCompIns>=0?'+':'')+f2(yCompIns-bCompIns)+'</td>';
       hy+='<td>'+f2(yTaxBase)+'</td>';
       hy+='<td class="neg">'+f2(yTax)+'</td>';
